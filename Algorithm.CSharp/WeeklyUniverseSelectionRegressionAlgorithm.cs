@@ -1,4 +1,4 @@
-﻿/*
+/*
  * QUANTCONNECT.COM - Democratizing Finance, Empowering Individuals.
  * Lean Algorithmic Trading Engine v2.0. Copyright 2014 QuantConnect Corporation.
  *
@@ -17,15 +17,16 @@ using System.Collections.Generic;
 using System.Linq;
 using QuantConnect.Data.Market;
 using QuantConnect.Data.UniverseSelection;
+using QuantConnect.Interfaces;
 
 namespace QuantConnect.Algorithm.CSharp
 {
     /// <summary>
     /// Regression algorithm to test universe additions and removals with open positions
     /// </summary>
-    public class WeeklyUniverseSelectionRegressionAlgorithm : QCAlgorithm
+    /// <meta name="tag" content="regression test" />
+    public class WeeklyUniverseSelectionRegressionAlgorithm : QCAlgorithm, IRegressionAlgorithmDefinition
     {
-        private readonly Symbol _ibm = QuantConnect.Symbol.Create("IBM", SecurityType.Equity, Market.USA);
         private SecurityChanges _changes = SecurityChanges.None;
 
         /// <summary>
@@ -33,14 +34,14 @@ namespace QuantConnect.Algorithm.CSharp
         /// </summary>
         public override void Initialize()
         {
-            UniverseSettings.Resolution = Resolution.Hour;
-
             SetStartDate(2013, 10, 1);  //Set Start Date
             SetEndDate(2013, 10, 31);    //Set End Date
             SetCash(100000);             //Set Strategy Cash
 
+            UniverseSettings.Resolution = Resolution.Hour;
+
             // select IBM once a week, empty universe the other days
-            AddUniverse(coarse => Time.Day % 7 == 0 ? new List<Symbol> { _ibm } : Enumerable.Empty<Symbol>());
+            AddUniverse("my-custom-universe", dt => dt.Day % 7 == 0 ? new List<string> { "IBM" } : Enumerable.Empty<string>());
         }
 
         /// <summary>
@@ -81,5 +82,61 @@ namespace QuantConnect.Algorithm.CSharp
             _changes = changes;
             Log(Time + " " + changes);
         }
+
+        /// <summary>
+        /// This is used by the regression test system to indicate if the open source Lean repository has the required data to run this algorithm.
+        /// </summary>
+        public bool CanRunLocally { get; } = true;
+
+        /// <summary>
+        /// This is used by the regression test system to indicate which languages this algorithm is written in.
+        /// </summary>
+        public Language[] Languages { get; } = { Language.CSharp, Language.Python };
+
+        /// <summary>
+        /// This is used by the regression test system to indicate what the expected statistics are from running the algorithm
+        /// </summary>
+        public Dictionary<string, string> ExpectedStatistics => new Dictionary<string, string>
+        {
+            {"Total Trades", "8"},
+            {"Average Win", "0.66%"},
+            {"Average Loss", "-0.53%"},
+            {"Compounding Annual Return", "-10.666%"},
+            {"Drawdown", "2.200%"},
+            {"Expectancy", "-0.441"},
+            {"Net Profit", "-0.943%"},
+            {"Sharpe Ratio", "-1.721"},
+            {"Probabilistic Sharpe Ratio", "20.632%"},
+            {"Loss Rate", "75%"},
+            {"Win Rate", "25%"},
+            {"Profit-Loss Ratio", "1.24"},
+            {"Alpha", "-0.2"},
+            {"Beta", "0.216"},
+            {"Annual Standard Deviation", "0.062"},
+            {"Annual Variance", "0.004"},
+            {"Information Ratio", "-4.79"},
+            {"Tracking Error", "0.112"},
+            {"Treynor Ratio", "-0.494"},
+            {"Total Fees", "$25.73"},
+            {"Fitness Score", "0.049"},
+            {"Kelly Criterion Estimate", "-47.478"},
+            {"Kelly Criterion Probability Value", "0.725"},
+            {"Sortino Ratio", "-2.302"},
+            {"Return Over Maximum Drawdown", "-5.325"},
+            {"Portfolio Turnover", "0.362"},
+            {"Total Insights Generated", "8"},
+            {"Total Insights Closed", "7"},
+            {"Total Insights Analysis Completed", "7"},
+            {"Long Insight Count", "4"},
+            {"Short Insight Count", "0"},
+            {"Long/Short Ratio", "100%"},
+            {"Estimated Monthly Alpha Value", "$-10285.75"},
+            {"Total Accumulated Estimated Alpha Value", "$-10571.47"},
+            {"Mean Population Estimated Insight Value", "$-1510.21"},
+            {"Mean Population Direction", "14.2857%"},
+            {"Mean Population Magnitude", "0%"},
+            {"Rolling Averaged Population Direction", "1.9802%"},
+            {"Rolling Averaged Population Magnitude", "0%"}
+        };
     }
 }
